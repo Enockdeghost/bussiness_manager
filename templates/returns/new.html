@@ -1,65 +1,50 @@
 {% extends "base.html" %}
-
-{% block title %}Process Return{% endblock %}
+{% block title %}Process Return for Sale {{ sale.invoice_no }}{% endblock %}
 
 {% block content %}
-<div class="p-8">
-    <h1 class="text-3xl font-bold mb-6">Process Return for Sale {{ sale.invoice_no }}</h1>
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Process Return</h1>
+    <p class="text-gray-600">Sale #{{ sale.invoice_no }} – {{ sale.created_at.strftime('%Y-%m-%d') }}</p>
+</div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="mb-4 p-4 rounded {% if category == 'danger' %}bg-red-100 text-red-700{% elif category == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+<div class="bg-white rounded-xl shadow-md p-6 max-w-4xl mx-auto">
+    <form method="POST" action="{{ url_for('returns.new_for_sale', sale_id=sale.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">  <!-- CSRF token added -->
 
-    <div class="bg-white rounded shadow p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4">Sale Details</h2>
-        <p><strong>Invoice:</strong> {{ sale.invoice_no }}</p>
-        <p><strong>Customer:</strong> {{ sale.customer.name if sale.customer else 'Walk-in' }}</p>
-        <p><strong>Total Amount:</strong> {{ sale.total_amount|currency }}</p>
-        <p><strong>Date:</strong> {{ sale.created_at.strftime('%Y-%m-%d') }}</p>
-    </div>
+        <div class="mb-6">
+            <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">Return Reason</label>
+            <textarea name="reason" id="reason" rows="3" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+        </div>
 
-    <form method="POST" class="bg-white rounded shadow p-6">
-        <h2 class="text-xl font-semibold mb-4">Return Items</h2>
-        
-        <div class="overflow-x-auto mb-6">
-            <table class="min-w-full">
-                <thead class="bg-gray-100">
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-4">Items to Return</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-2 text-left">Product</th>
-                        <th class="px-4 py-2 text-left">Qty Sold</th>
-                        <th class="px-4 py-2 text-left">Unit Price</th>
-                        <th class="px-4 py-2 text-left">Return Qty</th>
-                        <th class="px-4 py-2 text-left">Condition</th>
-                        <th class="px-4 py-2 text-left">Restock</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty Sold</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Return Qty</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Condition</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Restock</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="bg-white divide-y divide-gray-200">
                     {% for item in sale.items %}
-                    <tr class="border-b">
+                    <tr>
+                        <td class="px-4 py-2">{{ item.product.name }}</td>
+                        <td class="px-4 py-2">{{ item.quantity }}</td>
                         <td class="px-4 py-2">
-                            {{ item.product.name }}
+                            <input type="number" name="return_qty" value="0" min="0" max="{{ item.quantity }}" class="w-20 px-2 py-1 border border-gray-300 rounded-md">
                             <input type="hidden" name="item_id" value="{{ item.id }}">
                         </td>
-                        <td class="px-4 py-2">{{ item.quantity }}</td>
-                        <td class="px-4 py-2">{{ item.unit_price|currency }}</td>
                         <td class="px-4 py-2">
-                            <input type="number" name="return_qty" min="0" max="{{ item.quantity }}" value="0" class="w-20 px-2 py-1 border rounded">
-                        </td>
-                        <td class="px-4 py-2">
-                            <select name="condition" class="px-2 py-1 border rounded">
+                            <select name="condition" class="border border-gray-300 rounded-md px-2 py-1">
                                 <option value="resellable">Resellable</option>
                                 <option value="damaged">Damaged</option>
-                                <option value="defective">Defective</option>
                             </select>
                         </td>
                         <td class="px-4 py-2">
-                            <input type="checkbox" name="restock" value="true" checked>
+                            <input type="checkbox" name="restock" value="true" checked class="rounded border-gray-300 text-indigo-600">
                         </td>
                     </tr>
                     {% endfor %}
@@ -68,26 +53,17 @@
         </div>
 
         <div class="mb-6">
-            <label class="block mb-2 font-semibold">Return Reason:</label>
-            <textarea name="reason" class="w-full px-3 py-2 border rounded" rows="3" required></textarea>
-        </div>
-
-        <div class="mb-6">
-            <label class="block mb-2 font-semibold">Refund Method:</label>
-            <select name="refund_method" class="w-full px-3 py-2 border rounded" required>
+            <label for="refund_method" class="block text-sm font-medium text-gray-700 mb-2">Refund Method</label>
+            <select name="refund_method" id="refund_method" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                 <option value="cash">Cash</option>
-                <option value="card">Card Refund</option>
-                <option value="credit">Store Credit</option>
+                <option value="card">Card</option>
+                <option value="store_credit">Store Credit</option>
             </select>
         </div>
 
-        <div class="flex gap-2">
-            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                Process Return
-            </button>
-            <a href="{{ url_for('sales.list') }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-                Cancel
-            </a>
+        <div class="flex justify-end space-x-4">
+            <a href="{{ url_for('sales.list') }}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</a>
+            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Process Return</button>
         </div>
     </form>
 </div>
