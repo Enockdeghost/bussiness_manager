@@ -732,9 +732,13 @@ class SaleForm(FlaskForm):
     payment_method = SelectField('Payment Method', choices=[('cash', 'Cash'), ('card', 'Card'), ('mobile', 'Mobile Money')])
     items = TextAreaField('Items (JSON)', validators=[DataRequired()])
 
-# ------------------------------
-# Helper Functions
-# ------------------------------
+class ExpenseForm(FlaskForm):
+    description = StringField('Description', validators=[DataRequired()])
+    amount = FloatField('Amount', validators=[DataRequired(), NumberRange(min=0.01)])
+    category_id = SelectField('Category', coerce=int, validators=[DataRequired()])
+    date = DateField('Date', validators=[Optional()], default=date.today)
+
+
 def log_activity(action, details=None):
     log = ActivityLog(
         user_id=current_user.id if current_user.is_authenticated else None,
@@ -746,9 +750,6 @@ def log_activity(action, details=None):
     db.session.add(log)
     db.session.commit()
 
-# ------------------------------
-# Flask-Admin
-# ------------------------------
 class UserAdminView(ModelView):
     form_columns = ['username', 'email', 'role', 'branch_id', 'active', 'salary', 'pay_cycle', 'permissions']
     form_overrides = {
@@ -1282,25 +1283,26 @@ def list():
 @login_required
 @permission_required('create_expense')
 def new():
-    if request.method == 'POST':
+    form = ExpenseForm()
+    # Populate category choices
+    form.category_id.choices = [(c.id, c.name) for c in ExpenseCategory.query.all()]
+    
+    if form.validate_on_submit():
         expense = Expense(
-            description=request.form['description'],
-            amount=float(request.form['amount']),
-            category_id=request.form['category_id'],
+            description=form.description.data,
+            amount=form.amount.data,
+            category_id=form.category_id.data,
             user_id=current_user.id,
             branch_id=current_user.branch_id,
-            date=datetime.strptime(request.form['date'], '%Y-%m-%d').date() if request.form.get('date') else date.today()
+            date=form.date.data or date.today()
         )
         db.session.add(expense)
         db.session.commit()
-        flash(_('Expense added.'), 'success')
+        flash(_('Expense added successfully.'), 'success')
         return redirect(url_for('expenses.list'))
-    categories = ExpenseCategory.query.all()
-    return render_template('expenses/new.html', categories=categories)
+    
+    return render_template('expenses/new.html', form=form)
 
-# ----------------------------------------------------------------------
-# Payroll Blueprint
-# ----------------------------------------------------------------------
 payroll_bp = Blueprint('payroll', __name__)
 
 @payroll_bp.route('/')
