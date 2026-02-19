@@ -1241,9 +1241,45 @@ def add_communication(customer_id):
     flash(_('Communication logged.'), 'success')
     return redirect(url_for('crm.customer_detail', customer_id=customer.id))
 
-# ----------------------------------------------------------------------
-# Inventory Blueprint
-# ----------------------------------------------------------------------
+@crm_bp.route('/customers/new', methods=['GET', 'POST'])
+@login_required
+@permission_required('edit_customers')
+def new_customer():
+    form = CustomerForm()
+    if form.validate_on_submit():
+        customer = Customer(
+            name=form.name.data,
+            email=form.email.data,
+            phone=form.phone.data,
+            address=form.address.data,
+            segment=form.segment.data,
+            birth_date=form.birth_date.data,
+            branch_id=current_user.branch_id  # or allow selection if admin
+        )
+        db.session.add(customer)
+        db.session.commit()
+        flash(_('Customer added successfully.'), 'success')
+        return redirect(url_for('crm.customer_list'))
+    return render_template('crm/form.html', form=form)
+
+@crm_bp.route('/customers/<int:customer_id>/edit', methods=['GET', 'POST'])
+@login_required
+@permission_required('edit_customers')
+def edit_customer(customer_id):
+    customer = Customer.query_active().get_or_404(customer_id)
+    form = CustomerForm(obj=customer)
+    if form.validate_on_submit():
+        customer.name = form.name.data
+        customer.email = form.email.data
+        customer.phone = form.phone.data
+        customer.address = form.address.data
+        customer.segment = form.segment.data
+        customer.birth_date = form.birth_date.data
+        db.session.commit()
+        flash(_('Customer updated successfully.'), 'success')
+        return redirect(url_for('crm.customer_list'))
+    return render_template('crm/form.html', form=form, customer=customer)
+
 inventory_bp = Blueprint('inventory', __name__)
 
 @inventory_bp.route('/products')
