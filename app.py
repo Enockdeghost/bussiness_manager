@@ -1198,7 +1198,6 @@ def receive_po(po_id):
         logger.exception("Error receiving PO")
         flash(_('Error: %(error)s', error=str(e)), 'danger')
     return redirect(url_for('purchasing.purchase_order_list'))
-
 # ----------------------------------------------------------------------
 # CRM Blueprint
 # ----------------------------------------------------------------------
@@ -1214,33 +1213,6 @@ def customer_list():
     pagination = query.order_by(Customer.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     return render_template('crm/list.html', pagination=pagination)
 
-@crm_bp.route('/customers/<int:customer_id>')
-@login_required
-@permission_required('view_customers')
-def customer_detail(customer_id):
-    customer = Customer.query_active().get_or_404(customer_id)
-    sales = Sale.query.filter_by(customer_id=customer_id).order_by(Sale.created_at.desc()).all()
-    communications = customer.communications.order_by(CommunicationLog.date.desc()).all()
-    total_spent = db.session.query(func.sum(Sale.total_amount)).filter_by(customer_id=customer_id).scalar() or 0
-    return render_template('crm/detail.html', customer=customer, sales=sales, comms=communications, total_spent=total_spent)
-
-@crm_bp.route('/customers/<int:customer_id>/communication', methods=['POST'])
-@login_required
-@permission_required('edit_customers')
-def add_communication(customer_id):
-    customer = Customer.query_active().get_or_404(customer_id)
-    comm = CommunicationLog(
-        customer_id=customer.id,
-        type=request.form['type'],
-        subject=request.form['subject'],
-        content=request.form['content'],
-        user_id=current_user.id
-    )
-    db.session.add(comm)
-    db.session.commit()
-    flash(_('Communication logged.'), 'success')
-    return redirect(url_for('crm.customer_detail', customer_id=customer.id))
-
 @crm_bp.route('/customers/new', methods=['GET', 'POST'])
 @login_required
 @permission_required('edit_customers')
@@ -1254,7 +1226,7 @@ def new_customer():
             address=form.address.data,
             segment=form.segment.data,
             birth_date=form.birth_date.data,
-            branch_id=current_user.branch_id  # or allow selection if admin
+            branch_id=current_user.branch_id
         )
         db.session.add(customer)
         db.session.commit()
@@ -1262,11 +1234,21 @@ def new_customer():
         return redirect(url_for('crm.customer_list'))
     return render_template('crm/form.html', form=form)
 
+@crm_bp.route('/customers/<int:customer_id>')
+@login_required
+@permission_required('view_customers')
+def customer_detail_view(customer_id):  # renamed to avoid conflict
+    customer = Customer.query_active().filter_by(id=customer_id).first_or_404()
+    sales = Sale.query.filter_by(customer_id=customer_id).order_by(Sale.created_at.desc()).all()
+    communications = customer.communications.order_by(CommunicationLog.date.desc()).all()
+    total_spent = db.session.query(func.sum(Sale.total_amount)).filter_by(customer_id=customer_id).scalar() or 0
+    return render_template('crm/detail.html', customer=customer, sales=sales, comms=communications, total_spent=total_spent)
+
 @crm_bp.route('/customers/<int:customer_id>/edit', methods=['GET', 'POST'])
 @login_required
 @permission_required('edit_customers')
 def edit_customer(customer_id):
-    customer = Customer.query_active().get_or_404(customer_id)
+    customer = Customer.query_active().filter_by(id=customer_id).first_or_404()
     form = CustomerForm(obj=customer)
     if form.validate_on_submit():
         customer.name = form.name.data
@@ -1279,6 +1261,23 @@ def edit_customer(customer_id):
         flash(_('Customer updated successfully.'), 'success')
         return redirect(url_for('crm.customer_list'))
     return render_template('crm/form.html', form=form, customer=customer)
+
+@crm_bp.route('/customers/<int:customer_id>/communication', methods=['POST'])
+@login_required
+@permission_required('edit_customers')
+def add_communication(customer_id):
+    customer = Customer.query_active().filter_by(id=customer_id).first_or_404()
+    comm = CommunicationLog(
+        customer_id=customer.id,
+        type=request.form['type'],
+        subject=request.form['subject'],
+        content=request.form['content'],
+        user_id=current_user.id
+    )
+    db.session.add(comm)
+    db.session.commit()
+    flash(_('Communication logged.'), 'success')
+    return redirect(url_for('crm.customer_detail_view', customer_id=customer.id)) 
 
 inventory_bp = Blueprint('inventory', __name__)
 

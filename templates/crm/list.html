@@ -32,10 +32,12 @@
                 <td class="px-6 py-4 whitespace-nowrap">{{ customer.segment }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">{{ customer.loyalty_points }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <a href="{{ url_for('crm.customer_detail', customer_id=customer.id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3" title="View">
+                    <!-- View details link (uses renamed endpoint) -->
+                    <a href="{{ url_for('crm.customer_detail_view', customer_id=customer.id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3" title="View">
                         <i class="fas fa-eye"></i>
                     </a>
                     {% if current_user.has_permission('edit_customers') %}
+                    <!-- Edit link -->
                     <a href="{{ url_for('crm.edit_customer', customer_id=customer.id) }}" class="text-green-600 hover:text-green-900 mr-3" title="Edit">
                         <i class="fas fa-edit"></i>
                     </a>
