@@ -69,8 +69,7 @@ This guide will walk you through the main functions of the system, helping you g
 5. Click **Login**.  
 
 
-> **First‑time users:** Your administrator will provide you with credentials. After logging in, you can change your password via the profile settings (if available).
-
+> **First‑time users:** Your administrator will provide you with credentials. After logging in, you can change your password via the profile settings
 ### Dashboard Overview  
 
 After logging in, you are taken to the **Dashboard**. The dashboard gives you a snapshot of key metrics:  
