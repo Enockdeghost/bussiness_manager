@@ -35,56 +35,56 @@
             <nav class="mt-4 pb-6">
                 <!-- Dashboard – always visible if user has permission (default) -->
                 {% if current_user.has_permission('access_dashboard') or current_user.is_admin %}
-                <a href="{{ url_for('dashboard.index') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint == 'dashboard.index' %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('dashboard.index') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint == 'dashboard.index' %}bg-blue-700{% endif %}">
                     <i class="fas fa-tachometer-alt w-6"></i><span class="ml-3">Dashboard</span>
                 </a>
                 {% endif %}
 
                 <!-- Sales -->
                 {% if current_user.has_permission('view_sales') %}
-                <a href="{{ url_for('sales.list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('sales.') %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('sales.list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint.startswith('sales.') %}bg-blue-700{% endif %}">
                     <i class="fas fa-shopping-cart w-6"></i><span class="ml-3">Sales</span>
                 </a>
                 {% endif %}
 
                 <!-- Returns (uses same permission as sales for now) -->
                 {% if current_user.has_permission('view_sales') %}
-                <a href="{{ url_for('returns.list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('returns.') %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('returns.list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint.startswith('returns.') %}bg-blue-700{% endif %}">
                     <i class="fas fa-undo-alt w-6"></i><span class="ml-3">Returns</span>
                 </a>
                 {% endif %}
 
                 <!-- Purchasing -->
                 {% if current_user.has_permission('view_purchases') %}
-                <a href="{{ url_for('purchasing.purchase_order_list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('purchasing.') %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('purchasing.purchase_order_list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint.startswith('purchasing.') %}bg-blue-700{% endif %}">
                     <i class="fas fa-truck w-6"></i><span class="ml-3">Purchasing</span>
                 </a>
                 {% endif %}
 
                 <!-- Inventory -->
                 {% if current_user.has_permission('view_inventory') %}
-                <a href="{{ url_for('inventory.product_list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('inventory.') %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('inventory.product_list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint.startswith('inventory.') %}bg-blue-700{% endif %}">
                     <i class="fas fa-boxes w-6"></i><span class="ml-3">Inventory</span>
                 </a>
                 {% endif %}
 
                 <!-- Expenses -->
                 {% if current_user.has_permission('view_expenses') %}
-                <a href="{{ url_for('expenses.list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('expenses.') %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('expenses.list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint.startswith('expenses.') %}bg-blue-700{% endif %}">
                     <i class="fas fa-wallet w-6"></i><span class="ml-3">Expenses</span>
                 </a>
                 {% endif %}
 
                 <!-- Customers (CRM) -->
                 {% if current_user.has_permission('view_customers') %}
-                <a href="{{ url_for('crm.customer_list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('crm.') %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('crm.customer_list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint.startswith('crm.') %}bg-blue-700{% endif %}">
                     <i class="fas fa-users w-6"></i><span class="ml-3">Customers</span>
                 </a>
                 {% endif %}
 
                 <!-- Reports -->
                 {% if current_user.has_permission('view_reports') %}
-                <a href="{{ url_for('reports.index') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('reports.') %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('reports.index') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint.startswith('reports.') %}bg-blue-700{% endif %}">
                     <i class="fas fa-chart-pie w-6"></i><span class="ml-3">Reports</span>
                 </a>
                 {% endif %}
@@ -103,13 +103,13 @@
                 <!-- Admin (manage_users permission) -->
                 {% if current_user.has_permission('manage_users') %}
                 <div class="border-t border-blue-600 my-2"></div>
-                <a href="{{ url_for('admin.users') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint == 'admin.users' %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('admin.users') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint == 'admin.users' %}bg-blue-700{% endif %}">
                     <i class="fas fa-user-cog w-6"></i><span class="ml-3">Users</span>
                 </a>
-                <a href="{{ url_for('admin.audit_logs') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint == 'admin.audit_logs' %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('admin.audit_logs') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint == 'admin.audit_logs' %}bg-blue-700{% endif %}">
                     <i class="fas fa-history w-6"></i><span class="ml-3">Audit Logs</span>
                 </a>
-                <a href="{{ url_for('admin.activity_logs') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint == 'admin.activity_logs' %}bg-blue-700{% endif %}">
+                <a href="{{ url_for('admin.activity_logs') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint and request.endpoint == 'admin.activity_logs' %}bg-blue-700{% endif %}">
                     <i class="fas fa-clipboard-list w-6"></i><span class="ml-3">Activity Logs</span>
                 </a>
                 <a href="#" class="flex items-center py-3 px-6 hover:bg-blue-700 transition">
