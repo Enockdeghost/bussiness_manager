@@ -1523,27 +1523,25 @@ def users():
     per_page = app.config.get('ITEMS_PER_PAGE', 20)
     pagination = User.query_active().order_by(User.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     return render_template('admin/users.html', pagination=pagination)
+
 @admin_bp.route('/users/new', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def new_user():
     form = UserForm()
-    # Populate branch choices
     form.branch_id.choices = [(b.id, b.name) for b in Branch.query.filter_by(is_active=True)]
 
     if form.validate_on_submit():
-        # Ensure password is provided for new users
         if not form.password.data:
             flash('Password is required for new users.', 'danger')
             return render_template('admin/user_form.html', form=form)
 
-        # Create new user
         user = User(
             username=form.username.data,
             email=form.email.data,
             role=form.role.data,
             branch_id=form.branch_id.data if form.branch_id.data else None,
-            active=form.active.data,  # now defaults to True
+            active=form.active.data,
             salary=form.salary.data,
             pay_cycle=form.pay_cycle.data,
             permissions=form.permissions.data
@@ -1554,7 +1552,8 @@ def new_user():
 
         flash('User created successfully.', 'success')
         return redirect(url_for('admin.users'))
-    return render_template('admin/user_form.html', form=form)@admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
+
+    return render_template('admin/user_form.html', form=form)
 
 @admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -1563,6 +1562,7 @@ def edit_user(user_id):
     user = User.query.get_or_404(user_id)
     form = UserForm(obj=user)
     form.branch_id.choices = [(b.id, b.name) for b in Branch.query.filter_by(is_active=True)]
+
     if form.validate_on_submit():
         user.username = form.username.data
         user.email = form.email.data
@@ -1572,34 +1572,14 @@ def edit_user(user_id):
         user.salary = form.salary.data
         user.pay_cycle = form.pay_cycle.data
         user.permissions = form.permissions.data
+
         if form.password.data:
             user.set_password(form.password.data)
-        db.session.commit()
-        flash('User updated.', 'success')
-        return redirect(url_for('admin.users'))
-    return render_template('admin/user_form.html', form=form, user=user)
 
-
-@login_required
-@admin_required
-def edit_user(user_id):
-    user = User.query.get_or_404(user_id)
-    form = UserForm(obj=user)
-    form.branch_id.choices = [(b.id, b.name) for b in Branch.query.filter_by(is_active=True)]
-    if form.validate_on_submit():
-        user.username = form.username.data
-        user.email = form.email.data
-        user.role = form.role.data
-        user.branch_id = form.branch_id.data or None
-        user.active = form.active.data
-        user.salary = form.salary.data
-        user.pay_cycle = form.pay_cycle.data
-        user.permissions = form.permissions.data
-        if form.password.data:
-            user.set_password(form.password.data)
         db.session.commit()
-        flash('User updated.', 'success')
+        flash('User updated successfully.', 'success')
         return redirect(url_for('admin.users'))
+
     return render_template('admin/user_form.html', form=form, user=user)
 
 @admin_bp.route('/audit-logs')
@@ -1619,7 +1599,6 @@ def activity_logs():
     per_page = app.config.get('ITEMS_PER_PAGE', 20)
     pagination = ActivityLog.query.order_by(ActivityLog.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
     return render_template('admin/activity_logs.html', pagination=pagination)
-
 # ----------------------------------------------------------------------
 # Register all blueprints
 # ----------------------------------------------------------------------
