@@ -1,11 +1,4 @@
 # Business Management System  
-## User Guide  
-
-Version 1.0  
-February 2026  
-
----
-
 ## Table of Contents  
 
 1. [Introduction](#introduction)  
