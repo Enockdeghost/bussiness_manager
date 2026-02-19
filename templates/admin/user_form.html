@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if user else 'New' }} User{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-8">
+    <h2 class="text-2xl font-bold mb-6">{{ 'Edit' if user else 'Create' }} User</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-4">
+            {{ form.username.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+            {{ form.username(class="w-full border-gray-300 rounded-md") }}
+            {% for error in form.username.errors %}<p class="text-red-500 text-sm mt-1">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="mb-4">
+            {{ form.email.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+            {{ form.email(class="w-full border-gray-300 rounded-md") }}
+            {% for error in form.email.errors %}<p class="text-red-500 text-sm mt-1">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="mb-4">
+            {{ form.password.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+            {{ form.password(class="w-full border-gray-300 rounded-md") }}
+            <p class="text-xs text-gray-500">Leave blank to keep unchanged (when editing)</p>
+        </div>
+        <div class="mb-4">
+            {{ form.role.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+            {{ form.role(class="w-full border-gray-300 rounded-md") }}
+        </div>
+        <div class="mb-4">
+            {{ form.branch_id.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+            {{ form.branch_id(class="w-full border-gray-300 rounded-md") }}
+        </div>
+        <div class="mb-4">
+            {{ form.active.label(class="inline-flex items-center") }}
+            {{ form.active(class="ml-2") }}
+        </div>
+        <div class="mb-4">
+            {{ form.permissions.label(class="block text-sm font-medium text-gray-700 mb-2") }}
+            {{ form.permissions(class="w-full border-gray-300 rounded-md h-40") }}
+            <p class="text-xs text-gray-500">Hold Ctrl/Cmd to select multiple</p>
+        </div>
+        <div class="flex justify-end space-x-4">
+            <a href="{{ url_for('admin.users') }}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</a>
+            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

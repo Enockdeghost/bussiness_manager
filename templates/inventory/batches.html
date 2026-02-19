@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Product Batches{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <h1 class="text-3xl font-bold mb-6">Batches for {{ product.name }}</h1>
+
+    <div class="overflow-x-auto bg-white rounded shadow">
+        <table class="min-w-full">
+            <thead class="bg-gray-100 border-b">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Batch No</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Quantity</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Expiry Date</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Purchase Price</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Received Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch in batches %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ batch.batch_no }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ batch.quantity }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if batch.expiry_date %}
+                            {% if batch.expiry_date < now.date() %}
+                            <span class="text-red-600 font-semibold">{{ batch.expiry_date.strftime('%Y-%m-%d') }} (EXPIRED)</span>
+                            {% else %}
+                            {{ batch.expiry_date.strftime('%Y-%m-%d') }}
+                            {% endif %}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ batch.purchase_price|currency if batch.purchase_price else 'N/A' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ batch.received_date.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">No batches found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-6">
+        <a href="{{ url_for('inventory.product_list') }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            Back to Products
+        </a>
+    </div>
+</div>
+{% endblock %}

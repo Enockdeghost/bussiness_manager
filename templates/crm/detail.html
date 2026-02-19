@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ customer.name }}{% endblock %}
+{% block content %}
+<div class="mb-6">
+    <a href="{{ url_for('crm.customer_list') }}" class="text-indigo-600 hover:text-indigo-900">
+        <i class="fas fa-arrow-left mr-1"></i>Back to Customers
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Customer Info Card -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4">{{ customer.name }}</h2>
+            <div class="space-y-3">
+                <p><i class="fas fa-envelope text-gray-400 w-5 inline"></i> {{ customer.email or 'N/A' }}</p>
+                <p><i class="fas fa-phone text-gray-400 w-5 inline"></i> {{ customer.phone or 'N/A' }}</p>
+                <p><i class="fas fa-map-marker-alt text-gray-400 w-5 inline"></i> {{ customer.address or 'N/A' }}</p>
+                <p><i class="fas fa-tag text-gray-400 w-5 inline"></i> Segment: {{ customer.segment }}</p>
+                <p><i class="fas fa-star text-yellow-400 w-5 inline"></i> Loyalty Points: {{ customer.loyalty_points }}</p>
+                <p><i class="fas fa-calendar text-gray-400 w-5 inline"></i> Member since: {{ customer.created_at.strftime('%Y-%m-%d') }}</p>
+                <p><i class="fas fa-dollar-sign text-gray-400 w-5 inline"></i> Total spent: {{ total_spent|currency }}</p>
+            </div>
+
+            {% if current_user.has_permission('edit_customers') %}
+            <h3 class="text-lg font-semibold mt-6 mb-3">Add Communication</h3>
+            <form method="POST" action="{{ url_for('crm.add_communication', customer_id=customer.id) }}">
+                <div class="mb-3">
+                    <select name="type" class="w-full border-gray-300 rounded-md">
+                        <option value="email">Email</option>
+                        <option value="call">Call</option>
+                        <option value="sms">SMS</option>
+                        <option value="meeting">Meeting</option>
+                    </select>
+                </div>
+                <div class="mb-3"><input type="text" name="subject" placeholder="Subject" class="w-full border-gray-300 rounded-md"></div>
+                <div class="mb-3"><textarea name="content" rows="3" placeholder="Content" class="w-full border-gray-300 rounded-md"></textarea></div>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg w-full">Log Communication</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sales History & Communications -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold mb-4">Purchase History</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead><tr><th class="px-4 py-2 text-left">Invoice</th><th class="px-4 py-2 text-left">Date</th><th class="px-4 py-2 text-right">Total</th></tr></thead>
+                    <tbody>
+                        {% for sale in sales %}
+                        <tr><td class="px-4 py-2">{{ sale.invoice_no }}</td><td class="px-4 py-2">{{ sale.created_at.strftime('%Y-%m-%d') }}</td><td class="px-4 py-2 text-right">{{ sale.total_amount|currency }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-lg font-bold mb-4">Communication Log</h3>
+            <div class="space-y-4">
+                {% for comm in comms %}
+                <div class="border-l-4 border-indigo-500 pl-4 py-2">
+                    <div class="flex justify-between"><span class="font-semibold">{{ comm.type|upper }}</span><span class="text-sm text-gray-500">{{ comm.date.strftime('%Y-%m-%d %H:%M') }}</span></div>
+                    <p class="font-medium">{{ comm.subject }}</p>
+                    <p class="text-gray-600">{{ comm.content }}</p>
+                    <p class="text-xs text-gray-400">by {{ comm.user.username }}</p>
+                </div>
+                {% else %}<p class="text-gray-500">No communications yet.</p>{% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

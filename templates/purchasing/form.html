@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}New Purchase Order{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <h1 class="text-3xl font-bold mb-6">Create Purchase Order</h1>
+
+    <form method="POST" class="bg-white rounded shadow p-6">
+        <div class="mb-6">
+            <label class="block mb-2 font-semibold">PO Number:</label>
+            <input type="text" name="po_number" class="w-full px-3 py-2 border rounded" required>
+        </div>
+
+        <div class="mb-6">
+            <label class="block mb-2 font-semibold">Supplier:</label>
+            <select name="supplier_id" class="w-full px-3 py-2 border rounded" required>
+                <option value="">Select a supplier</option>
+                {% for supplier in suppliers %}
+                <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block mb-2 font-semibold">Order Date:</label>
+                <input type="date" name="order_date" class="w-full px-3 py-2 border rounded">
+            </div>
+            <div>
+                <label class="block mb-2 font-semibold">Expected Date:</label>
+                <input type="date" name="expected_date" class="w-full px-3 py-2 border rounded">
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label class="block mb-2 font-semibold">Notes:</label>
+            <textarea name="notes" class="w-full px-3 py-2 border rounded" rows="3"></textarea>
+        </div>
+
+        <h2 class="text-xl font-semibold mb-4">Items</h2>
+        
+        <div id="items-container" class="mb-6">
+            <div class="item-row mb-4 p-4 border rounded bg-gray-50">
+                <div class="grid grid-cols-4 gap-2">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Product:</label>
+                        <select name="product_id" class="w-full px-2 py-1 border rounded">
+                            <option value="">Select product</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Quantity:</label>
+                        <input type="number" name="quantity" min="1" class="w-full px-2 py-1 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Unit Price:</label>
+                        <input type="number" name="price" step="0.01" min="0" class="w-full px-2 py-1 border rounded">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button" class="w-full bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 remove-item">Remove</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" id="add-item" class="mb-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Add Item
+        </button>
+
+        <div class="flex gap-2">
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Create Purchase Order
+            </button>
+            <a href="{{ url_for('purchasing.purchase_order_list') }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('add-item').addEventListener('click', function() {
+    const container = document.getElementById('items-container');
+    const newRow = document.querySelector('.item-row').cloneNode(true);
+    newRow.querySelectorAll('input, select').forEach(field => field.value = '');
+    container.appendChild(newRow);
+    attachRemoveListener(newRow.querySelector('.remove-item'));
+});
+
+document.querySelectorAll('.remove-item').forEach(btn => attachRemoveListener(btn));
+
+function attachRemoveListener(btn) {
+    btn.addEventListener('click', function() {
+        this.closest('.item-row').remove();
+    });
+}
+</script>
+{% endblock %}

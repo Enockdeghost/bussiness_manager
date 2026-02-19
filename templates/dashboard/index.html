@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">Dashboard</h1>
+    <p class="text-gray-600">Welcome back, {{ current_user.username }}!</p>
+</div>
+
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {% if current_user.has_permission('view_sales') %}
+    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 card-hover">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-blue-100 text-blue-600"><i class="fas fa-dollar-sign text-2xl"></i></div>
+            <div class="ml-4"><p class="text-sm text-gray-500">Sales Today</p><p class="text-2xl font-semibold">{{ sales_today|currency }}</p></div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if current_user.has_permission('view_expenses') %}
+    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500 card-hover">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-red-100 text-red-600"><i class="fas fa-credit-card text-2xl"></i></div>
+            <div class="ml-4"><p class="text-sm text-gray-500">Expenses Today</p><p class="text-2xl font-semibold">{{ expenses_today|currency }}</p></div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if current_user.has_permission('view_inventory') %}
+    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500 card-hover">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600"><i class="fas fa-exclamation-triangle text-2xl"></i></div>
+            <div class="ml-4"><p class="text-sm text-gray-500">Low Stock Items</p><p class="text-2xl font-semibold">{{ low_stock }}</p></div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if current_user.has_permission('view_customers') %}
+    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 card-hover">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-green-100 text-green-600"><i class="fas fa-users text-2xl"></i></div>
+            <div class="ml-4"><p class="text-sm text-gray-500">Total Customers</p><p class="text-2xl font-semibold">{{ total_customers }}</p></div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Charts (if user can view reports) -->
+{% if current_user.has_permission('view_reports') %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-semibold mb-4">Sales Trend (Last 7 Days)</h3>
+        <canvas id="salesChart" height="150"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-semibold mb-4">Payment Methods</h3>
+        <canvas id="paymentChart" height="150"></canvas>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Sales (if user can view sales) -->
+{% if current_user.has_permission('view_sales') %}
+<div class="bg-white rounded-xl shadow-md p-6">
+    <h3 class="text-lg font-semibold mb-4">Recent Sales</h3>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for sale in recent_sales %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ sale.invoice_no }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ sale.customer.name if sale.customer else 'Walk-in' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ sale.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ sale.total_amount|currency }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ sale.status }}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if current_user.has_permission('view_reports') %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sales Trend Chart (Line)
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        const dailySales = {{ daily_sales|tojson|safe if daily_sales else '[]' }};
+        
+        if (dailySales.length > 0) {
+            new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: dailySales.map(item => item.date),
+                    datasets: [{
+                        label: 'Sales Amount',
+                        data: dailySales.map(item => item.total),
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        } else {
+            salesCtx.font = "16px sans-serif";
+            salesCtx.fillStyle = "#999";
+            salesCtx.textAlign = "center";
+            salesCtx.fillText("No sales data available", salesCtx.canvas.width/2, salesCtx.canvas.height/2);
+        }
+
+        // Payment Methods Chart (Doughnut)
+        const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+        const paymentMethods = {{ payment_methods|tojson|safe if payment_methods else '[]' }};
+        
+        if (paymentMethods.length > 0) {
+            new Chart(paymentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: paymentMethods.map(item => item.payment_method),
+                    datasets: [{
+                        data: paymentMethods.map(item => item.total),
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(139, 92, 246, 0.8)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        } else {
+            paymentCtx.font = "16px sans-serif";
+            paymentCtx.fillStyle = "#999";
+            paymentCtx.textAlign = "center";
+            paymentCtx.fillText("No payment data available", paymentCtx.canvas.width/2, paymentCtx.canvas.height/2);
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

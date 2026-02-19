@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BusinessFlow{% endblock %}</title>
+    <!-- Tailwind via CDN + custom landscape additions -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Subtle gradient animation for cards */
+        .card-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-50 font-sans antialiased">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gradient-to-b from-blue-800 to-indigo-900 text-white flex-shrink-0 hidden md:block overflow-y-auto shadow-xl">
+            <div class="p-6 border-b border-blue-700">
+                <h1 class="text-2xl font-bold tracking-wide">Business<span class="text-yellow-300">Flow</span></h1>
+                <p class="text-xs text-blue-200 mt-1 flex items-center">
+                    <i class="fas fa-user-circle mr-1"></i> {{ current_user.role }}
+                    {% if current_user.branch %}
+                        · {{ current_user.branch.name }}
+                    {% endif %}
+                </p>
+            </div>
+            <nav class="mt-4 pb-6">
+                <!-- Dashboard – always visible if user has permission (default) -->
+                {% if current_user.has_permission('access_dashboard') or current_user.is_admin %}
+                <a href="{{ url_for('dashboard.index') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint == 'dashboard.index' %}bg-blue-700{% endif %}">
+                    <i class="fas fa-tachometer-alt w-6"></i><span class="ml-3">Dashboard</span>
+                </a>
+                {% endif %}
+
+                <!-- Sales -->
+                {% if current_user.has_permission('view_sales') %}
+                <a href="{{ url_for('sales.list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('sales.') %}bg-blue-700{% endif %}">
+                    <i class="fas fa-shopping-cart w-6"></i><span class="ml-3">Sales</span>
+                </a>
+                {% endif %}
+
+                <!-- Returns (uses same permission as sales for now) -->
+                {% if current_user.has_permission('view_sales') %}
+                <a href="{{ url_for('returns.list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('returns.') %}bg-blue-700{% endif %}">
+                    <i class="fas fa-undo-alt w-6"></i><span class="ml-3">Returns</span>
+                </a>
+                {% endif %}
+
+                <!-- Purchasing -->
+                {% if current_user.has_permission('view_purchases') %}
+                <a href="{{ url_for('purchasing.purchase_order_list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('purchasing.') %}bg-blue-700{% endif %}">
+                    <i class="fas fa-truck w-6"></i><span class="ml-3">Purchasing</span>
+                </a>
+                {% endif %}
+
+                <!-- Inventory -->
+                {% if current_user.has_permission('view_inventory') %}
+                <a href="{{ url_for('inventory.product_list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('inventory.') %}bg-blue-700{% endif %}">
+                    <i class="fas fa-boxes w-6"></i><span class="ml-3">Inventory</span>
+                </a>
+                {% endif %}
+
+                <!-- Expenses -->
+                {% if current_user.has_permission('view_expenses') %}
+                <a href="{{ url_for('expenses.list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('expenses.') %}bg-blue-700{% endif %}">
+                    <i class="fas fa-wallet w-6"></i><span class="ml-3">Expenses</span>
+                </a>
+                {% endif %}
+
+                <!-- Customers (CRM) -->
+                {% if current_user.has_permission('view_customers') %}
+                <a href="{{ url_for('crm.customer_list') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('crm.') %}bg-blue-700{% endif %}">
+                    <i class="fas fa-users w-6"></i><span class="ml-3">Customers</span>
+                </a>
+                {% endif %}
+
+                <!-- Reports -->
+                {% if current_user.has_permission('view_reports') %}
+                <a href="{{ url_for('reports.index') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint.startswith('reports.') %}bg-blue-700{% endif %}">
+                    <i class="fas fa-chart-pie w-6"></i><span class="ml-3">Reports</span>
+                </a>
+                {% endif %}
+
+                <!-- Manager / Team Management (manage_team permission) -->
+                {% if current_user.has_permission('manage_team') %}
+                <div class="border-t border-blue-600 my-2"></div>
+                <a href="#" class="flex items-center py-3 px-6 hover:bg-blue-700 transition">
+                    <i class="fas fa-clock w-6"></i><span class="ml-3">Team Attendance</span>
+                </a>
+                <a href="#" class="flex items-center py-3 px-6 hover:bg-blue-700 transition">
+                    <i class="fas fa-tasks w-6"></i><span class="ml-3">Assign Tasks</span>
+                </a>
+                {% endif %}
+
+                <!-- Admin (manage_users permission) -->
+                {% if current_user.has_permission('manage_users') %}
+                <div class="border-t border-blue-600 my-2"></div>
+                <a href="{{ url_for('admin.users') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint == 'admin.users' %}bg-blue-700{% endif %}">
+                    <i class="fas fa-user-cog w-6"></i><span class="ml-3">Users</span>
+                </a>
+                <a href="{{ url_for('admin.audit_logs') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint == 'admin.audit_logs' %}bg-blue-700{% endif %}">
+                    <i class="fas fa-history w-6"></i><span class="ml-3">Audit Logs</span>
+                </a>
+                <a href="{{ url_for('admin.activity_logs') }}" class="flex items-center py-3 px-6 hover:bg-blue-700 transition {% if request.endpoint == 'admin.activity_logs' %}bg-blue-700{% endif %}">
+                    <i class="fas fa-clipboard-list w-6"></i><span class="ml-3">Activity Logs</span>
+                </a>
+                <a href="#" class="flex items-center py-3 px-6 hover:bg-blue-700 transition">
+                    <i class="fas fa-store w-6"></i><span class="ml-3">Branches</span>
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="bg-white shadow-sm border-b border-gray-200">
+                <div class="flex justify-between items-center py-4 px-6">
+                    <button class="md:hidden text-gray-600" onclick="toggleSidebar()">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                    <div class="flex items-center space-x-4 ml-auto">
+                        <span class="text-sm text-gray-600">{{ current_user.username }}</span>
+                        <a href="{{ url_for('auth.logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition shadow-sm">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="mb-4 p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500{% elif category == 'danger' %}bg-red-100 text-red-800 border-l-4 border-red-500{% elif category == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500{% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('aside');
+            sidebar.classList.toggle('hidden');
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

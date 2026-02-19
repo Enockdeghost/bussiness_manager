@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Sales{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Sales</h1>
+    {% if current_user.has_permission('create_sale') %}
+    <a href="{{ url_for('sales.new') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm">
+        <i class="fas fa-plus mr-2"></i>New Sale
+    </a>
+    {% endif %}
+</div>
+
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for sale in pagination.items %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">{{ sale.invoice_no }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ sale.customer.name if sale.customer else 'Walk-in' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ sale.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ sale.total_amount|currency }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ sale.payment_method }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <a href="{{ url_for('sales.invoice', sale_id=sale.id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3" title="View Invoice"><i class="fas fa-file-invoice"></i></a>
+                    {% if current_user.has_permission('edit_sale') %}
+                    <a href="#" class="text-green-600 hover:text-green-900 mr-3" title="Edit"><i class="fas fa-edit"></i></a>
+                    {% endif %}
+                    {% if current_user.has_permission('view_sales') %}
+                    <a href="{{ url_for('returns.new_for_sale', sale_id=sale.id) }}" class="text-yellow-600 hover:text-yellow-900" title="Return"><i class="fas fa-undo-alt"></i></a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <!-- Pagination -->
+    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div class="flex-1 flex justify-between">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('sales.list', page=pagination.prev_num) }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</a>
+            {% endif %}
+            {% if pagination.has_next %}
+            <a href="{{ url_for('sales.list', page=pagination.next_num) }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}New Expense{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <h1 class="text-3xl font-bold mb-6">Record New Expense</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="mb-4 p-4 rounded {% if category == 'danger' %}bg-red-100 text-red-700{% elif category == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" class="bg-white rounded shadow p-6 max-w-md">
+        <div class="mb-6">
+            <label class="block mb-2 font-semibold">Description:</label>
+            <input type="text" name="description" class="w-full px-3 py-2 border rounded" required>
+        </div>
+
+        <div class="mb-6">
+            <label class="block mb-2 font-semibold">Amount:</label>
+            <input type="number" name="amount" step="0.01" min="0" class="w-full px-3 py-2 border rounded" required>
+        </div>
+
+        <div class="mb-6">
+            <label class="block mb-2 font-semibold">Category:</label>
+            <select name="category_id" class="w-full px-3 py-2 border rounded" required>
+                <option value="">Select a category</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-6">
+            <label class="block mb-2 font-semibold">Date:</label>
+            <input type="date" name="date" class="w-full px-3 py-2 border rounded">
+        </div>
+
+        <div class="flex gap-2">
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Record Expense
+            </button>
+            <a href="{{ url_for('expenses.list') }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

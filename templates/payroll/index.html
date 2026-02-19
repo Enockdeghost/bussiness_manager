@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Payroll{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <h1 class="text-3xl font-bold mb-6">Payroll Management</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="mb-4 p-4 rounded {% if category == 'danger' %}bg-red-100 text-red-700{% elif category == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="bg-white rounded shadow p-6">
+        <h2 class="text-xl font-semibold mb-4">Payroll Periods</h2>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold">Period</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold">Start Date</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold">End Date</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold">Status</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for period in periods %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-6 py-4">{{ period.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ period.start_date.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ period.end_date.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 rounded-full text-sm font-medium {% if period.processed %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {% if period.processed %}Processed{% else %}Pending{% endif %}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="{{ url_for('payroll.period_payslips', period_id=period.id) }}" class="text-blue-600 hover:text-blue-900 text-sm">View Payslips</a>
+                            {% if not period.processed %}
+                            <form method="POST" action="{{ url_for('payroll.process_payroll') }}" style="display:inline;">
+                                <input type="hidden" name="period_id" value="{{ period.id }}">
+                                <button type="submit" class="text-green-600 hover:text-green-900 text-sm ml-2" onclick="return confirm('Process payroll for this period?')">Process</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No payroll periods found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
