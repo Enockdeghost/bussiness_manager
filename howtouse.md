@@ -316,18 +316,3 @@ When the goods arrive:
 | **Page not found (404)** | You may have followed an outdated link. Use the navigation menu instead. |
 | **Internal server error (500)** | Something went wrong on the server. Try again later; if it persists, contact support. |
 
----
-
-## Support  
-
-If you encounter any issues not covered in this guide, or if you have suggestions for improvement, please contact:  
-
-- **Email:** support@yourcompany.com  
-- **Phone:** +1 (555) 123-4567  
-- **Internal Help Desk:** Visit the IT department or submit a ticket through your company’s help portal.  
-
-We are committed to helping you make the most of the Business Management System.
-
----
-
-*Thank you for using our system!*
