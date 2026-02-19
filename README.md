@@ -68,7 +68,6 @@ This guide will walk you through the main functions of the system, helping you g
 4. Check **Remember Me** if you want to stay logged in on that device.  
 5. Click **Login**.  
 
-![Login Screen](images/login.png) *(Illustrative)*  
 
 > **First‑time users:** Your administrator will provide you with credentials. After logging in, you can change your password via the profile settings (if available).
 
