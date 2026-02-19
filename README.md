@@ -1,5 +1,5 @@
 # Business Management System  
-## User Guide  
+## User Guide non developer
 
 ## Table of Contents  
 
