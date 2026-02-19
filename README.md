@@ -1,423 +1,313 @@
-# AMP ENVIRONMENTAL CLEANING AND WASTE MANAGEMENT SYSTEM  
-## Technical Proposal  
-
-**Prepared by:** Anna Mkurambe  
-**Date:** February 19, 2026  
-**Version:** 1.0  
-
----
+# Business Management System  
+## User Guide  
 
 ## Table of Contents  
 
-1. [Introduction](#1-introduction)  
-   1.1 [Purpose](#11-purpose)  
-   1.2 [Scope](#12-scope)  
-   1.3 [Target Audience](#13-target-audience)  
-
-2. [System Overview](#2-system-overview)  
-   2.1 [Objectives](#21-objectives)  
-   2.2 [Key Features](#22-key-features)  
-   2.3 [User Roles](#23-user-roles)  
-
-3. [Technical Architecture](#3-technical-architecture)  
-   3.1 [Framework and Libraries](#31-framework-and-libraries)  
-   3.2 [Application Structure](#32-application-structure)  
-   3.3 [Database Design](#33-database-design)  
-   3.4 [API Design](#34-api-design)  
-
-4. [Module Deep Dive](#4-module-deep-dive)  
-   4.1 [User Authentication & Management](#41-user-authentication--management)  
-   4.2 [Project & Service Management](#42-project--service-management)  
-   4.3 [Payment & Invoice Processing](#43-payment--invoice-processing)  
-   4.4 [Service Request & Waste Collection Reporting](#44-service-request--waste-collection-reporting)  
-   4.5 [Messaging System](#45-messaging-system)  
-   4.6 [Statistics Dashboard](#46-statistics-dashboard)  
-   4.7 [Invoice & Receipt Generation](#47-invoice--receipt-generation)  
-
-5. [Security Considerations](#5-security-considerations)  
-   5.1 [Authentication & Authorization](#51-authentication--authorization)  
-   5.2 [Data Protection](#52-data-protection)  
-   5.3 [Input Validation & Sanitization](#53-input-validation--sanitization)  
-   5.4 [Error Handling & Logging](#54-error-handling--logging)  
-
-6. [Deployment and Operations](#6-deployment-and-operations)  
-   6.1 [Environment Configuration](#61-environment-configuration)  
-   6.2 [Database Initialization](#62-database-initialization)  
-   6.3 [Running the Application](#63-running-the-application)  
-
-7. [Future Enhancements](#7-future-enhancements)  
-   7.1 [Payment Gateway Integration](#71-payment-gateway-integration)  
-   7.2 [Real-time Notifications](#72-real-time-notifications)  
-   7.3 [Mobile App Integration](#73-mobile-app-integration)  
-   7.4 [Advanced Analytics & Reporting](#74-advanced-analytics--reporting)  
-
-8. [Conclusion](#8-conclusion)  
-
-9. [Appendices](#9-appendices)  
-   9.1 [Complete API Endpoint List](#91-complete-api-endpoint-list)  
-   9.2 [Database Schema Diagram](#92-database-schema-diagram)  
-   9.3 [Sample .env Configuration](#93-sample-env-configuration)  
+1. [Introduction](#introduction)  
+2. [Getting Started](#getting-started)  
+   - [Login](#login)  
+   - [Dashboard Overview](#dashboard-overview)  
+3. [Sales Management](#sales-management)  
+   - [Recording a Sale](#recording-a-sale)  
+   - [Viewing Sales History](#viewing-sales-history)  
+   - [Printing an Invoice](#printing-an-invoice)  
+   - [Processing Returns](#processing-returns)  
+4. [Purchasing & Inventory](#purchasing--inventory)  
+   - [Creating a Purchase Order](#creating-a-purchase-order)  
+   - [Receiving Stock](#receiving-stock)  
+   - [Managing Products](#managing-products)  
+   - [Low Stock Alerts](#low-stock-alerts)  
+5. [Customer Relationship Management (CRM)](#customer-relationship-management-crm)  
+   - [Adding a Customer](#adding-a-customer)  
+   - [Viewing Customer History](#viewing-customer-history)  
+   - [Loyalty Points](#loyalty-points)  
+6. [Expenses](#expenses)  
+   - [Recording an Expense](#recording-an-expense)  
+   - [Expense Categories](#expense-categories)  
+7. [Payroll](#payroll)  
+   - [Managing Employees](#managing-employees)  
+   - [Processing Payroll](#processing-payroll)  
+8. [Reports](#reports)  
+   - [Sales Reports](#sales-reports)  
+   - [Profit & Loss](#profit--loss)  
+   - [Exporting Data](#exporting-data)  
+9. [Admin Functions](#admin-functions)  
+   - [User Management](#user-management)  
+   - [Audit Logs](#audit-logs)  
+10. [Tips and Best Practices](#tips-and-best-practices)  
+11. [Troubleshooting](#troubleshooting)  
+12. [Support](#support)  
 
 ---
 
-## 1. Introduction  
+## Introduction  
 
-### 1.1 Purpose  
-This document provides a comprehensive technical proposal for the **AMP Environmental Cleaning and Waste Management System**, a web‑based application designed to manage environmental cleaning services and waste collection operations. The platform supports multiple user roles (admin, field staff, customer), handles project creation, service invoicing, waste collection requests, and internal communication.  
+Welcome to the **Business Management System** – a comprehensive tool designed to streamline your daily operations, from sales and inventory to customer management and payroll. Whether you run a retail store, a small business, or a multi‑branch enterprise, this system provides an integrated platform to help you stay organized, make informed decisions, and grow your business.
 
-### 1.2 Scope  
-The proposal covers the entire architecture, implementation details, security measures, and deployment guidelines for the Flask‑based application. It explains every component of the system, including models, routes, decorators, helper functions, and database initialization.  
+**Key Features**  
+- **Sales & Invoicing** – Record sales, generate invoices, and handle returns.  
+- **Inventory Control** – Track stock levels, set reorder alerts, and manage batches.  
+- **Customer Management** – Maintain customer profiles, view purchase history, and award loyalty points.  
+- **Purchasing** – Create purchase orders and receive stock seamlessly.  
+- **Expense Tracking** – Log expenses by category and monitor cash flow.  
+- **Payroll** – Manage employee salaries and process payroll periods.  
+- **Reports** – Gain insights with sales summaries, profit/loss, and exportable data.  
+- **Multi‑Branch & User Roles** – Support for multiple locations with role‑based access (Admin, Manager, Staff).  
 
-### 1.3 Target Audience  
-- **Stakeholders** seeking an overview of the system’s capabilities.  
-- **Developers** who need to understand the codebase for maintenance or extension.  
-- **System Administrators** responsible for deployment and operations.  
-
----
-
-## 2. System Overview  
-
-### 2.1 Objectives  
-- Enable environmental service companies to create and manage cleaning projects and waste collection contracts.  
-- Allow customers to request services easily via web forms or QR‑code redirection.  
-- Provide a platform for citizens to report illegal dumping or request waste collection (with geolocation) and track resolution.  
-- Assign tasks to field staff and monitor progress.  
-- Offer administrative dashboards for real‑time statistics and user management.  
-
-### 2.2 Key Features  
-- **User Registration & Authentication** (with password hashing)  
-- **Role‑Based Access Control** (admin, field staff, customer)  
-- **Project & Service Management** (CRUD operations, QR code generation for site identification)  
-- **Payment & Invoice Processing** (including anonymous payments and invoice generation)  
-- **Service Request & Waste Collection Reporting** (geolocation, waste type, status updates)  
-- **Internal Messaging System** (between users)  
-- **Administrative Dashboards** (with aggregated statistics)  
-- **RESTful API** for integration with external services or front‑end clients  
-
-### 2.3 User Roles  
-
-| Role        | Permissions                                                                                         |
-|-------------|-----------------------------------------------------------------------------------------------------|
-| Admin       | Full access: manage users, projects, invoices, service requests; view all data; assign field staff. |
-| Field Staff | View assigned service requests, update their status, log completed work.                           |
-| Customer    | Request services (logged‑in or guest), view own service history and invoices.                      |
+This guide will walk you through the main functions of the system, helping you get the most out of it.
 
 ---
 
-## 3. Technical Architecture  
+## Getting Started  
 
-### 3.1 Framework and Libraries  
-The application is built with **Python Flask**, a lightweight WSGI web framework. Key libraries include:  
+### Login  
 
-- **Flask-SQLAlchemy** – ORM for database interactions.  
-- **Flask-Login** – User session management.  
-- **Werkzeug** – Password hashing and security utilities.  
-- **PyQRCode / qrcode** – Generate QR codes for projects or sites.  
-- **Python’s `secrets` module** – Cryptographically strong random tokens.  
-- **Datetime & functools** – For time‑based operations and decorators.  
+1. Open your web browser and navigate to your company’s Business Management System URL.  
+2. You will see the **Login** page.  
+3. Enter your **Username** and **Password** (provided by your administrator).  
+4. Check **Remember Me** if you want to stay logged in on that device.  
+5. Click **Login**.  
 
-### 3.2 Application Structure  
-The code is organized in a single file (monolithic) for simplicity, but follows a logical separation:  
+![Login Screen](images/login.png) *(Illustrative)*  
 
-1. **Configuration** – App settings, secret key, database URI.  
-2. **Models** – SQLAlchemy ORM classes (`User`, `Project`, `Invoice`, `ServiceRequest`, `Message`, `PaymentRequest`).  
-3. **Login Manager & Decorators** – User loader and role‑based access decorator.  
-4. **Helper Functions** – `get_request_data()` to unify JSON/form data handling.  
-5. **HTML Page Routes** – Render templates for user interfaces.  
-6. **API Routes** – JSON endpoints for programmatic access.  
-7. **Error Handlers** – Custom 404, 500, etc.  
-8. **Database Initialization** – `init_db()` seeds default users and sample data.  
+> **First‑time users:** Your administrator will provide you with credentials. After logging in, you can change your password via the profile settings (if available).
 
-### 3.3 Database Design  
-The database schema is relational (SQLite in development, easily switchable to PostgreSQL/MySQL).  
+### Dashboard Overview  
 
-**Main Tables & Relationships:**  
+After logging in, you are taken to the **Dashboard**. The dashboard gives you a snapshot of key metrics:  
 
-- **users** – Stores user credentials, profile info, role, and active status.  
-- **projects** – Environmental cleaning projects or service contracts with target budget, dates, and QR token.  
-- **invoices** – Each invoice references a project and optionally a user. Includes status, payment method, and unique invoice ID.  
-- **service_requests** – Reported waste collection or cleaning requests with geocoordinates, waste type, status, and optional assignment to field staff.  
-- **messages** – Internal messaging between users.  
-- **payment_requests** – (Placeholder) for future payment gateway integration.  
+- **Today’s Sales** – Total sales amount for the current day.  
+- **Today’s Expenses** – Total expenses recorded today.  
+- **Low Stock Items** – Number of products that have fallen below their reorder level.  
+- **Total Customers** – Number of active customers in the system.  
+- **Recent Sales** – A list of the latest sales with links to invoices.  
+- **Sales Chart** – A graphical view of daily sales for the last 7 days.  
+- **Payment Methods** – Breakdown of sales by payment method over the last 30 days.  
 
-Relationships are defined via foreign keys and SQLAlchemy relationships (e.g., `User.invoices`).  
-
-### 3.4 API Design  
-The API follows REST conventions and responds to both JSON and traditional form submissions. The helper `get_request_data()` ensures compatibility.  
-
-**Key Endpoint Categories:**  
-- Authentication (`/api/register`, `/api/login`, `/api/logout`)  
-- User management (`/api/users/<id>`)  
-- Projects (`/api/projects`, `/api/projects/<id>/qr`)  
-- Invoices (`/api/invoices`, `/api/invoices/<id>/pay`)  
-- Service requests (`/api/service-requests`, assignment, status update)  
-- Messaging (`/api/messages`, `/api/messages/<id>/read`)  
-- Statistics (`/api/statistics`)  
-- Invoices/Receipts (`/api/invoices/<invoice_id>`)  
-
-All endpoints that modify data are protected by authentication and role checks where appropriate.  
+From the dashboard, you can quickly access any module using the navigation menu at the top.
 
 ---
 
-## 4. Module Deep Dive  
+## Sales Management  
 
-### 4.1 User Authentication & Management  
+### Recording a Sale  
 
-**Models:**  
-- `User` extends `UserMixin` for Flask‑Login compatibility.  
-- Passwords are hashed using `werkzeug.security.generate_password_hash` (default: pbkdf2:sha256).  
-- Fields: `username`, `email`, `full_name`, `phone`, `role`, `is_active`, password hash, password reset token/expiry.  
+1. From the top menu, click **Sales** > **New Sale**.  
+2. Fill in the sale form:  
+   - **Customer** – Select a customer from the dropdown, or leave as "Walk‑in" for guests.  
+   - **Payment Method** – Choose Cash, Card, or Mobile Money.  
+   - **Items** – In the **Items** text area, you must enter a JSON array of products. For example:  
+     ```json
+     [{"product_id": 1, "quantity": 2}, {"product_id": 3, "quantity": 1}]
+     ```  
+     *(Tip: If you have many items, you can use the product search to build this JSON automatically – see section 10.)*  
+3. Click **Submit**.  
+4. The system will validate stock availability and create the sale. On success, you are redirected to the invoice page.
 
-**Authentication Flow:**  
-- `/api/register` – Accepts username, email, password, optional fields. Checks uniqueness, hashes password, stores user.  
-- `/api/login` – Validates credentials, checks `is_active`, logs in user via `login_user()`. Returns JSON or redirects.  
-- `/api/logout` – Logs out current user.  
-- **Session Management:** Flask‑Login manages user sessions with a secure cookie.  
+### Viewing Sales History  
 
-**Role‑Based Access Control:**  
-- Custom decorator `@role_required(*roles)` checks authentication and user role.  
-- Used on admin‑only routes (e.g., `/admin/dashboard`, user management endpoints).  
+- Go to **Sales** > **All Sales**.  
+- You will see a paginated list of sales, showing invoice number, date, customer, total amount, and payment method.  
+- Click on any sale to view its details or print the invoice.
 
-**Password Reset (Skeleton):**  
-- Fields `reset_token` and `reset_token_expiry` exist but no routes are implemented – a placeholder for future feature.  
+### Printing an Invoice  
 
-### 4.2 Project & Service Management  
+- From the sales list, click the **Invoice** link next to a sale, or go to **Sales** > **Invoice** after creating a sale.  
+- The invoice page displays all details in a printable format. Use your browser’s print function (Ctrl+P) to print or save as PDF.
 
-**Model:**  
-- `Project`: `name`, `description`, `budget`, `invoiced_amount`, dates, `is_active`, `qr_token`.  
+### Processing Returns  
 
-**Key Features:**  
-- **CRUD Operations:**  
-  - `GET /api/projects` – List all projects.  
-  - `POST /api/projects` (admin) – Create project; auto‑generates QR token.  
-  - `PUT /api/projects/<id>` (admin) – Update project details.  
-- **QR Code Generation:**  
-  - `GET /api/projects/<id>/qr` – Generates QR code pointing to the service request page with token validation.  
-  - QR code contains a URL like `https://.../request/<id>?qr=<token>`.  
-  - Uses `qrcode` library to create PNG image, returned as file download.  
-- **Invoice Integration:**  
-  - Project’s `invoiced_amount` updates automatically when an invoice is paid.  
-
-### 4.3 Payment & Invoice Processing  
-
-**Model:**  
-- `Invoice`: `reference_id` (unique), `user_id` (nullable for guests), `project_id`, `amount`, `payment_method`, `status` (pending/paid/rejected), `transaction_id`, `invoice_id` (unique).  
-
-**Invoice Flow:**  
-1. Customer (logged‑in or guest) receives an invoice via `/api/invoices` (POST).  
-2. Required fields: `project_id`, `amount`. Optional: `payment_method`.  
-3. Server validates project active, amount > 0.  
-4. Creates invoice record with `pending` status and a unique `reference_id`.  
-5. **Demo Auto‑approval:** Currently invoices are automatically set to `paid` for simplicity. In production, a payment gateway would be called.  
-6. On payment, project’s `invoiced_amount` increases and a receipt ID is generated.  
-
-**Admin Actions:**  
-- `POST /api/invoices/<id>/approve` – Manually approve a pending invoice.  
-- `POST /api/invoices/<id>/reject` – Reject an invoice.  
-
-**Receipts:**  
-- Each paid invoice gets a unique `receipt_id`.  
-- `GET /receipts/<receipt_id>` – Renders an HTML receipt.  
-- `GET /api/receipts/<receipt_id>` – Returns receipt data as JSON.  
-
-### 4.4 Service Request & Waste Collection Reporting  
-
-**Model:**  
-- `ServiceRequest`: `latitude`, `longitude`, `address`, `description`, `waste_type` (general, recyclable, hazardous), `status` (reported/assigned/in_progress/completed/cancelled), `reported_by` (user ID), `assigned_to` (staff ID), `image_url` (placeholder), timestamps.  
-
-**Features:**  
-- **Report Request:**  
-  - `POST /api/service-requests` (authenticated) – Creates a new request. Extracts geocoordinates, address, waste type.  
-- **List Requests:**  
-  - `GET /api/service-requests` – Returns all requests (admin) or filtered for staff/customers; permission checks on individual GET.  
-- **Assignment:**  
-  - `POST /api/service-requests/<id>/assign` (admin) – Assigns a field staff (must have role 'staff') to the request. Updates status to 'assigned'.  
-- **Status Update:**  
-  - `POST /api/service-requests/<id>/update-status` (admin or assigned staff) – Changes status, sets `completed_at` if status becomes 'completed'.  
-
-**Access Control:**  
-- `GET /api/service-requests/<id>` checks if the requester is admin, reporter, or assigned staff.  
-
-### 4.5 Messaging System  
-
-**Model:**  
-- `Message`: `sender_id`, `receiver_id`, `subject`, `content`, `is_read`, `created_at`.  
-
-**Endpoints:**  
-- `GET /api/messages` – Returns messages received by current user.  
-- `POST /api/messages` – Sends a message to another user (validates receiver exists).  
-- `POST /api/messages/<id>/read` – Marks a message as read (only receiver can do this).  
-
-**User Search:**  
-- `GET /api/users/search?q=<query>` – Searches users by username, full name, or email; used for finding recipients.  
-
-### 4.6 Statistics Dashboard  
-
-**Endpoint:**  
-- `GET /api/statistics` (admin only) – Aggregates key metrics:  
-  - Total invoiced amount, total projects, active projects, total users.  
-  - Service request counts (total, completed).  
-  - Recent invoices (last 5).  
-  - Project progress percentages.  
-
-This powers the admin dashboard template (`admin_dashboard.html`).  
-
-### 4.7 Invoice & Receipt Generation  
-
-**HTML Template:**  
-- `receipt.html` – Displays invoice details in a printable format.  
-- Accessed via `/receipts/<receipt_id>` – Publicly viewable? Currently no permission check; anyone with the receipt ID can view.  
-
-**API:**  
-- `GET /api/receipts/<receipt_id>` – Returns JSON with invoice info, including customer name unless anonymous.  
+1. Navigate to **Returns** > **New Return** and enter the sale invoice number, or go to the sale detail page and click **Process Return**.  
+2. You will see the list of items from that sale. For each item you want to return, enter the quantity.  
+3. Choose whether to **restock** the item (add back to inventory) and select the condition.  
+4. Select the **refund method** (cash, card, etc.).  
+5. Click **Process Return**.  
+6. The system will update stock (if restocked) and adjust the sale status accordingly (returned or partially returned).
 
 ---
 
-## 5. Security Considerations  
+## Purchasing & Inventory  
 
-### 5.1 Authentication & Authorization  
-- **Password Hashing:** `werkzeug.security` uses strong, salted hashes (default 600,000 iterations of pbkdf2:sha256).  
-- **Session Security:** Flask‑Login uses secure cookies; `SECRET_KEY` is read from environment variable or generated randomly.  
-- **Role Enforcement:** The `@role_required` decorator ensures only users with specific roles access privileged endpoints.  
-- **Object‑Level Permissions:** Some endpoints (e.g., `GET /api/service-requests/<id>`) manually check ownership/assignment.  
+### Creating a Purchase Order  
 
-### 5.2 Data Protection  
-- **Sensitive Data:** Passwords are never stored in plain text. Email addresses are considered personal data and should be handled according to privacy regulations (GDPR, etc.).  
-- **CSRF Protection:** Not explicitly implemented; forms rely on same‑origin policy and Flask‑Login’s session protection. For production, CSRF tokens (e.g., Flask‑WTF) should be added.  
-- **Environment Variables:** `SECRET_KEY` and `WEBHOOK_SECRET` are loaded from environment to avoid hardcoding.  
+1. From the menu, go to **Purchasing** > **Purchase Orders** > **New PO**.  
+2. Fill in the form:  
+   - **PO Number** – A unique identifier for the order.  
+   - **Supplier** – Select from the list of suppliers.  
+   - **Order Date** – Defaults to today.  
+   - **Expected Date** – When you anticipate receiving the goods.  
+   - **Notes** – Any additional information.  
+3. In the **Items** section, add products by selecting them from the dropdown, entering quantity and unit price. You can add multiple rows.  
+4. Click **Create Purchase Order**.  
+5. The PO is saved with status **draft**. You can later mark it as ordered or received.
 
-### 5.3 Input Validation & Sanitization  
-- **Helper Function `get_request_data()`:** Parses JSON, form data, or raw JSON from request body, but does not perform schema validation.  
-- **Manual Checks:** Routes check required fields and data types (e.g., amount must be float > 0).  
-- **SQL Injection:** SQLAlchemy ORM uses parameterized queries, protecting against injection.  
-- **XSS:** Templates (if using Jinja) auto‑escape content. However, the current code only returns JSON or redirects; any HTML templates must be reviewed for safe rendering.  
+### Receiving Stock  
 
-### 5.4 Error Handling & Logging  
-- **Custom Error Handlers:** Return appropriate JSON or HTML for 400/401/403/404/500 errors.  
-- **Database Rollback:** On 500 error, `db.session.rollback()` prevents corrupt transactions.  
-- **No Verbose Errors in Production:** Error handlers return generic messages; detailed errors are not exposed to clients.  
+When the goods arrive:  
 
----
+1. Go to **Purchasing** > **Purchase Orders**.  
+2. Find the PO and click **Receive**.  
+3. The system will increase stock quantities for each item and record a stock movement.  
+4. If the product tracks batches, you may be prompted to enter batch numbers and expiry dates.  
 
-## 6. Deployment and Operations  
+### Managing Products  
 
-### 6.1 Environment Configuration  
-The application uses the following environment variables:  
+- To view all products, go to **Inventory** > **Products**.  
+- Use the search bar to find a product by name, SKU, or barcode.  
+- Click **Edit** to update product details (price, reorder level, etc.).  
+- To add a new product, click **New Product** and fill in:  
+  - **Name**, **SKU** (unique), **Barcode** (optional)  
+  - **Cost** and **Price**  
+  - **Current Stock** (initial quantity)  
+  - **Reorder Level** – The minimum stock before alert  
+  - **Category**, **Brand**  
+  - **Track Batches** – Check if you need batch/lot tracking (e.g., for perishables).  
+  - **Branch** – If you have multiple branches, assign the product to the correct one.  
 
-| Variable          | Purpose                                         | Default                             |
-|-------------------|-------------------------------------------------|-------------------------------------|
-| `SECRET_KEY`      | Flask session signing key                       | Auto‑generated random hex (32)      |
-| `WEBHOOK_SECRET`  | Future webhook authentication                   | Auto‑generated random hex (32)      |
+### Low Stock Alerts  
 
-For production, set these to strong, persistent values.  
-
-### 6.2 Database Initialization  
-- Database URI is configured as `sqlite:///envclean.db` by default.  
-- The `init_db()` function runs inside `app.app_context()` to create tables and seed initial data:  
-  - Admin user: `admin` / `admin123`  
-  - Field staff: `staff1` / `staff123`  
-  - Customer: `customer1` / `customer123`  
-  - Two sample projects and two service requests.  
-
-To reset the database, delete the `.db` file and restart the app.  
-
-### 6.3 Running the Application  
-
-**Development:**  
-```bash
-export FLASK_APP=app.py
-export FLASK_ENV=development
-flask run
-```
-or directly:
-```bash
-python app.py
-```
-This starts a development server on `0.0.0.0:5000`.  
-
-**Production:**  
-Use a production WSGI server like Gunicorn:  
-```bash
-gunicorn -w 4 -b 0.0.0.0:8000 app:app
-```
-Set environment variables appropriately and use a reverse proxy (nginx) for SSL termination.  
+- The dashboard shows a count of low‑stock items.  
+- Managers receive notifications (email) when stock falls below reorder level (if configured).  
+- You can also run the **Low Stock Report** from the Reports section.
 
 ---
 
-## 7. Future Enhancements  
+## Customer Relationship Management (CRM)  
 
-### 7.1 Payment Gateway Integration  
-- Replace the auto‑approval logic with actual payment processing (e.g., Stripe, PayPal, M‑Pesa).  
-- Use the `PaymentRequest` model to track gateway requests and responses.  
-- Implement webhooks to update invoice status asynchronously.  
+### Adding a Customer  
 
-### 7.2 Real-time Notifications  
-- Integrate WebSockets (Flask‑SocketIO) to notify admins of new service requests or field staff of assignments.  
-- Email/SMS notifications for invoice receipts or status changes.  
+1. Go to **CRM** > **Customers** > **New Customer**.  
+2. Fill in the customer’s details:  
+   - Name (required)  
+   - Email, Phone, Address  
+   - Segment (Regular, VIP, Inactive)  
+   - Birth Date (optional)  
+3. Click **Save**.  
 
-### 7.3 Mobile App Integration  
-- Expose the API for a mobile front‑end (React Native / Flutter).  
-- Add OAuth2 or JWT authentication for mobile clients.  
+### Viewing Customer History  
 
-### 7.4 Advanced Analytics & Reporting  
-- Generate PDF reports for projects, invoices, and service completion.  
-- Visualize data with charts (using Chart.js or similar).  
+- From the customer list, click on a customer’s name.  
+- You will see:  
+  - **Sales History** – All purchases made by this customer.  
+  - **Communications** – Log of emails, calls, or meetings (you can add new communications).  
+  - **Loyalty Points** – Current points balance and transaction history.  
+  - **Total Spent** – Lifetime purchase amount.  
+
+### Loyalty Points  
+
+- For every $10 spent, the customer earns 1 loyalty point (configurable).  
+- Points are automatically added when a sale is completed.  
+- Currently, points are for tracking only; future versions may include point redemption.
 
 ---
 
-## 8. Conclusion  
+## Expenses  
 
-The **AMP Environmental Cleaning and Waste Management System** provides a solid foundation for managing environmental services and waste collection operations. Its modular design, role‑based access, and RESTful API make it extensible and suitable for both web and mobile clients. With proper security measures and planned enhancements, it can evolve into a full‑fledged solution for environmental service companies.  
+### Recording an Expense  
 
-This proposal outlines the current implementation and future directions, ensuring all stakeholders have a clear understanding of the system’s capabilities and technical underpinnings.  
+1. Go to **Expenses** > **New Expense**.  
+2. Fill in:  
+   - **Description** – What the expense is for.  
+   - **Amount** – The cost.  
+   - **Category** – Select from predefined categories (Rent, Utilities, etc.).  
+   - **Date** – Defaults to today.  
+3. Click **Save**.  
+
+### Expense Categories  
+
+- Categories are managed by administrators. If you need a new category, contact your admin.
 
 ---
 
-## 9. Appendices  
+## Payroll  
 
-### 9.1 Complete API Endpoint List  
+*This module is accessible to users with Manager or Admin role.*
 
-| Method | Endpoint                                | Access              | Description                               |
-|--------|-----------------------------------------|---------------------|-------------------------------------------|
-| POST   | /api/register                           | Public              | Register new user                         |
-| POST   | /api/login                              | Public              | Log in user                               |
-| POST   | /api/logout                             | Authenticated       | Log out current user                      |
-| GET    | /api/users/<id>                         | Admin               | Get user details                          |
-| PUT    | /api/users/<id>                         | Admin               | Update user                               |
-| DELETE | /api/users/<id>                         | Admin               | Delete user                               |
-| GET    | /api/projects                           | Public              | List all projects                         |
-| POST   | /api/projects                           | Admin               | Create project                            |
-| GET    | /api/projects/<id>                      | Public              | Get project details                       |
-| PUT    | /api/projects/<id>                      | Admin               | Update project                            |
-| GET    | /api/projects/<id>/qr                   | Public              | Get QR code for project                    |
-| GET    | /api/projects/<id>/invoices             | Public              | List paid invoices for project            |
-| GET    | /api/invoices                           | Admin               | List all invoices                         |
-| POST   | /api/invoices                           | Public/Logged-in    | Create invoice (auto‑paid)                |
-| GET    | /api/invoices/<id>                      | Admin/Customer owner| Get invoice details                       |
-| POST   | /api/invoices/<id>/approve              | Admin               | Approve pending invoice                   |
-| POST   | /api/invoices/<id>/reject               | Admin               | Reject pending invoice                    |
-| GET    | /api/service-requests                    | Authenticated       | List all service requests                 |
-| POST   | /api/service-requests                    | Authenticated       | Report a service request                  |
-| GET    | /api/service-requests/<id>               | Admin/Reporter/Assigned | Get request details                |
-| POST   | /api/service-requests/<id>/assign        | Admin               | Assign field staff to request             |
-| POST   | /api/service-requests/<id>/update-status | Admin/Assigned staff| Update request status                     |
-| GET    | /api/messages                            | Authenticated       | Get received messages                     |
-| POST   | /api/messages                            | Authenticated       | Send a message                            |
-| POST   | /api/messages/<id>/read                  | Authenticated (receiver) | Mark message as read                |
-| GET    | /api/users/search                        | Authenticated       | Search users                              |
-| GET    | /api/statistics                          | Admin               | Get system statistics                     |
-| GET    | /api/receipts/<receipt_id>                | Public              | Get receipt data (JSON)                   |
-| GET    | /receipts/<receipt_id>                    | Public              | View receipt HTML                         |
+### Managing Employees  
 
-### 9.2 Database Schema Diagram  
+- Employee records are stored in the **Users** table (see Admin Functions).  
+- To set up an employee for payroll, ensure they have a **Salary** and **Pay Cycle** (monthly, biweekly, weekly) defined.
 
-*(A visual diagram would be inserted here – for brevity, refer to the model relationships described in section 3.3.)*  
+### Processing Payroll  
 
-### 9.3 Sample .env Configuration  
+1. Go to **Payroll** > **Payroll Periods**.  
+2. Click **Create New Period** (if not already created). Set a name, start date, and end date.  
+3. Once the period ends, go to the period and click **Process Payroll**.  
+4. The system generates pay slips for all active employees with a salary.  
+5. Pay slips are saved with status **draft**. You can review and then mark as paid.
 
-```
-SECRET_KEY=your-very-strong-secret-key-here
-WEBHOOK_SECRET=another-strong-secret-for-webhooks
-DATABASE_URL=postgresql://user:pass@localhost/envdb   # optional, defaults to sqlite
-```
+---
+
+## Reports  
+
+### Sales Reports  
+
+1. Navigate to **Reports** > **Reports Dashboard**.  
+2. Select a date range (default is current month).  
+3. The report shows:  
+   - Total sales, number of transactions  
+   - Total expenses  
+   - Net profit/loss  
+   - Best‑selling products (top 10 by quantity)  
+4. You can export the report as CSV by clicking **Export CSV** for the specific report type (Sales, Expenses, etc.).
+
+### Profit & Loss  
+
+- The profit calculation is automatically derived from sales minus expenses for the selected period.
+
+### Exporting Data  
+
+- From the reports page, click on **Export CSV** next to the report you want. A CSV file will be downloaded with the data.
+
+---
+
+## Admin Functions  
+
+*These functions are available only to users with Admin role.*
+
+### User Management  
+
+1. Go to **Admin** > **Users**.  
+2. Here you can view all users, add new users, or edit existing ones.  
+3. When adding/editing a user, you can set:  
+   - Username, Email, Password  
+   - Role (Admin, Manager, Staff)  
+   - Branch assignment  
+   - Salary and pay cycle (for payroll)  
+   - Permissions (fine‑grained access to modules)  
+   - Active status (deactivate users who leave)  
+
+### Audit Logs  
+
+- **Admin** > **Audit Logs** shows a chronological record of all changes made to important data (users, products, sales, etc.).  
+- Each entry shows which user made the change, when, and what was changed (old vs new values).  
+
+### Activity Logs  
+
+- **Admin** > **Activity Logs** tracks user actions like login, logout, and failed login attempts. Useful for security monitoring.
+
+---
+
+## Tips and Best Practices  
+
+- **Use the search** – Most lists (customers, products, sales) have a search bar to quickly find records.  
+- **Batch numbers** – If you deal with expiry dates, enable batch tracking for relevant products. Always record batch numbers when receiving stock.  
+- **Keyboard shortcuts** – After filling forms, you can often press **Ctrl+Enter** to submit (if supported by browser).  
+- **Regular backups** – Your administrator should schedule regular database backups. The system includes a command‑line backup tool (`flask backup-db`).  
+- **Review low stock daily** – Check the dashboard or run the low stock report to avoid running out of popular items.  
+- **Customer communications** – Use the communication log in CRM to keep notes about interactions with customers – this helps build relationships.  
+- **Permissions** – Assign the minimum necessary permissions to users to maintain data security.
+
+---
+
+## Troubleshooting  
+
+| Issue | Possible Solution |
+|-------|-------------------|
+| **Cannot log in** | Verify username and password. If forgotten, contact your administrator to reset it. |
+| **Sale won’t save – "Insufficient stock"** | Check the product’s current stock. You may need to receive a purchase order first or adjust stock manually. |
+| **Low stock alert not received** | Ensure your email is configured in the system and that the notification settings are enabled (contact admin). |
+| **Report shows incorrect data** | Verify the date range. If problem persists, check that all sales/expenses are correctly entered. |
+| **Page not found (404)** | You may have followed an outdated link. Use the navigation menu instead. |
+| **Internal server error (500)** | Something went wrong on the server. Try again later; if it persists, contact support. |
 
