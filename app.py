@@ -72,7 +72,7 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@example.com')
 
 # Cache (Redis)
-app.config['CACHE_TYPE'] = os.environ.get('CACHE_TYPE', 'RedisCache')
+app.config['CACHE_TYPE'] = 'SimpleCache'
 app.config['CACHE_REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 app.config['CACHE_DEFAULT_TIMEOUT'] = 300
 
@@ -702,8 +702,8 @@ class UserForm(FlaskForm):
     password = PasswordField('Password', validators=[Optional(), Length(min=6)])
     role = SelectField('Role', choices=[('Admin', 'Admin'), ('Manager', 'Manager'), ('Staff', 'Staff')])
     branch_id = SelectField('Branch', coerce=int, validators=[Optional()])
-    active = BooleanField('Active')
     salary = FloatField('Salary', validators=[Optional()])
+    active = BooleanField('Active', default=True)
     pay_cycle = SelectField('Pay Cycle', choices=[('monthly', 'Monthly'), ('biweekly', 'Bi-Weekly'), ('weekly', 'Weekly')])
     permissions = SelectMultipleField('Permissions', choices=ALL_PERMISSIONS, coerce=str)
 
@@ -1523,20 +1523,27 @@ def users():
     per_page = app.config.get('ITEMS_PER_PAGE', 20)
     pagination = User.query_active().order_by(User.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     return render_template('admin/users.html', pagination=pagination)
-
 @admin_bp.route('/users/new', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def new_user():
     form = UserForm()
+    # Populate branch choices
     form.branch_id.choices = [(b.id, b.name) for b in Branch.query.filter_by(is_active=True)]
+
     if form.validate_on_submit():
+        # Ensure password is provided for new users
+        if not form.password.data:
+            flash('Password is required for new users.', 'danger')
+            return render_template('admin/user_form.html', form=form)
+
+        # Create new user
         user = User(
             username=form.username.data,
             email=form.email.data,
             role=form.role.data,
-            branch_id=form.branch_id.data or None,
-            active=form.active.data,
+            branch_id=form.branch_id.data if form.branch_id.data else None,
+            active=form.active.data,  # now defaults to True
             salary=form.salary.data,
             pay_cycle=form.pay_cycle.data,
             permissions=form.permissions.data
@@ -1544,11 +1551,35 @@ def new_user():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
+
         flash('User created successfully.', 'success')
         return redirect(url_for('admin.users'))
-    return render_template('admin/user_form.html', form=form)
+    return render_template('admin/user_form.html', form=form)@admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
 
 @admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_user(user_id):
+    user = User.query.get_or_404(user_id)
+    form = UserForm(obj=user)
+    form.branch_id.choices = [(b.id, b.name) for b in Branch.query.filter_by(is_active=True)]
+    if form.validate_on_submit():
+        user.username = form.username.data
+        user.email = form.email.data
+        user.role = form.role.data
+        user.branch_id = form.branch_id.data or None
+        user.active = form.active.data
+        user.salary = form.salary.data
+        user.pay_cycle = form.pay_cycle.data
+        user.permissions = form.permissions.data
+        if form.password.data:
+            user.set_password(form.password.data)
+        db.session.commit()
+        flash('User updated.', 'success')
+        return redirect(url_for('admin.users'))
+    return render_template('admin/user_form.html', form=form, user=user)
+
+
 @login_required
 @admin_required
 def edit_user(user_id):
@@ -1605,9 +1636,7 @@ app.register_blueprint(reports_bp, url_prefix='/reports')
 app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
-# ----------------------------------------------------------------------
-# Background Tasks
-# ----------------------------------------------------------------------
+
 def send_notification(user_id, message, method='email'):
     user = User.query.get(user_id)
     if user:
@@ -1621,9 +1650,7 @@ def check_low_stock_and_notify():
             for mgr in managers:
                 send_notification(mgr.id, f"Low stock: {prod.name} ({prod.sku}) only {prod.current_stock} left.")
 
-# ----------------------------------------------------------------------
-# CLI Commands
-# ----------------------------------------------------------------------
+
 @app.cli.command("init-db")
 def init_db():
     db.create_all()
@@ -1656,9 +1683,6 @@ def backup_db():
         json.dump(data, f, default=json_serial, indent=2)
     print(f"Backup saved to {filename}")
 
-# ----------------------------------------------------------------------
-# Error Handlers
-# ----------------------------------------------------------------------
 @app.errorhandler(403)
 def forbidden(e):
     return render_template('errors/403.html'), 403
@@ -1673,9 +1697,7 @@ def internal_error(e):
     logger.exception("Internal server error")
     return render_template('errors/500.html'), 500
 
-# ----------------------------------------------------------------------
-# Context Processor
-# ----------------------------------------------------------------------
+
 @app.context_processor
 def inject_now():
     return {'now': datetime.utcnow(), 'current_year': datetime.utcnow().year}
@@ -1686,9 +1708,7 @@ def currency_format(value):
         return "$0.00"
     return f"${value:,.2f}"
 
-# ----------------------------------------------------------------------
-# Run
-# ----------------------------------------------------------------------
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
@@ -1702,4 +1722,4 @@ if __name__ == '__main__':
                 db.session.flush()
                 admin.branch_id = branch.id
             db.session.commit()
-    app.run(debug=app.config.get('DEBUG', False), host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(debug=app.config.get('DEBUG', True), host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
