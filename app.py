@@ -1299,6 +1299,39 @@ def product_batches(product_id):
     batches = product.batches.order_by(StockBatch.expiry_date).all()
     return render_template('inventory/batches.html', product=product, batches=batches)
 
+@inventory_bp.route('/products/new', methods=['GET', 'POST'])
+@login_required
+@permission_required('edit_inventory')
+def new_product():
+    form = ProductForm()
+    # Populate branch choices for admin; non‑admin users are assigned to their branch
+    if current_user.is_admin:
+        form.branch_id.choices = [(b.id, b.name) for b in Branch.query.filter_by(is_active=True)]
+    else:
+        # Pre‑select the user's branch and hide the field in the template
+        form.branch_id.choices = [(current_user.branch_id, current_user.branch.name)] if current_user.branch else []
+        form.branch_id.data = current_user.branch_id
+
+    if form.validate_on_submit():
+        product = Product(
+            name=form.name.data,
+            description=form.description.data,
+            sku=form.sku.data,
+            barcode=form.barcode.data,
+            price=form.price.data,
+            cost=form.cost.data,
+            current_stock=form.current_stock.data,
+            reorder_level=form.reorder_level.data,
+            category=form.category.data,
+            track_batches=form.track_batches.data,
+            branch_id=form.branch_id.data or current_user.branch_id
+        )
+        db.session.add(product)
+        db.session.commit()
+        flash(_('Product added successfully.'), 'success')
+        return redirect(url_for('inventory.product_list'))
+    return render_template('inventory/product_form.html', form=form)
+
 # ----------------------------------------------------------------------
 # Expenses Blueprint
 # ----------------------------------------------------------------------

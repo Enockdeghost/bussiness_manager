@@ -1,74 +1,66 @@
 {% extends "base.html" %}
-
 {% block title %}Inventory{% endblock %}
 
 {% block content %}
-<div class="p-8">
-    <h1 class="text-3xl font-bold mb-6">Products</h1>
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Products</h1>
+    {% if current_user.has_permission('edit_inventory') %}
+    <a href="{{ url_for('inventory.new_product') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm">
+        <i class="fas fa-plus mr-2"></i>Add Product
+    </a>
+    {% endif %}
+</div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="mb-4 p-4 rounded {% if category == 'danger' %}bg-red-100 text-red-700{% elif category == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-                    {{ message }}
-                </div>
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reorder Level</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for product in pagination.items %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">{{ product.name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ product.sku }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ product.price|currency }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ product.current_stock }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ product.reorder_level }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <a href="{{ url_for('inventory.product_batches', product_id=product.id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3" title="Batches">
+                        <i class="fas fa-layer-group"></i>
+                    </a>
+                    {% if current_user.has_permission('edit_inventory') %}
+                    <a href="#" class="text-green-600 hover:text-green-900" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="px-6 py-4 text-center text-gray-500">No products found.</td>
+            </tr>
             {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <div class="overflow-x-auto bg-white rounded shadow">
-        <table class="min-w-full">
-            <thead class="bg-gray-100 border-b">
-                <tr>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">SKU</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Name</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Category</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Current Stock</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Reorder Level</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Price</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for product in pagination.items %}
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap">{{ product.sku }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ product.name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ product.category or 'N/A' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="{% if product.current_stock <= product.reorder_level %}text-red-600 font-semibold{% endif %}">
-                            {{ product.current_stock }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ product.reorder_level }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ product.price|currency }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        {% if product.track_batches %}
-                        <a href="{{ url_for('inventory.product_batches', product_id=product.id) }}" class="text-blue-600 hover:text-blue-900 text-sm">Batches</a>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">No products found</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        </tbody>
+    </table>
 
     <!-- Pagination -->
     {% if pagination.pages > 1 %}
-    <div class="mt-6 flex justify-center gap-2">
-        {% if pagination.has_prev %}
-            <a href="{{ url_for('inventory.product_list', page=pagination.prev_num) }}" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Previous</a>
-        {% endif %}
-        
-        <span class="px-3 py-2">Page {{ pagination.page }} of {{ pagination.pages }}</span>
-        
-        {% if pagination.has_next %}
-            <a href="{{ url_for('inventory.product_list', page=pagination.next_num) }}" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Next</a>
-        {% endif %}
+    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div class="flex-1 flex justify-between">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('inventory.product_list', page=pagination.prev_num) }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</a>
+            {% endif %}
+            {% if pagination.has_next %}
+            <a href="{{ url_for('inventory.product_list', page=pagination.next_num) }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</a>
+            {% endif %}
+        </div>
     </div>
     {% endif %}
 </div>
