@@ -40,7 +40,7 @@
 
 ---
 
-## Introduction  
+## Introduction 
 
 Welcome to the **Business Management System** – a comprehensive tool designed to streamline your daily operations, from sales and inventory to customer management and payroll. Whether you run a retail store, a small business, or a multi‑branch enterprise, this system provides an integrated platform to help you stay organized, make informed decisions, and grow your business.
 
