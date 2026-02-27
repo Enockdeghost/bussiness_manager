@@ -31,12 +31,10 @@ import rq
 from rq import Queue
 from rq.job import Job
 
-# ------------------------------
-# App Configuration
-# ------------------------------
+
+
 app = Flask(__name__)
 
-# Define locale selector BEFORE initializing Babel
 def get_locale():
     if current_user.is_authenticated and hasattr(current_user, 'locale'):
         return current_user.locale
@@ -47,8 +45,8 @@ babel = Babel(app, locale_selector=get_locale)
 
 # Load config from environment
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-if not app.config['SECRET_KEY']:
-    raise ValueError("SECRET_KEY must be set in environment")
+if not app.config['SECRET_KEY']:    
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///business.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
