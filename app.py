@@ -5,7 +5,7 @@ import io
 from datetime import datetime, date, timedelta
 from functools import wraps
 from decimal import Decimal, ROUND_HALF_UP
-
+from flask import Blueprint
 from flask import Flask, render_template, redirect, url_for, flash, request, abort, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -32,7 +32,6 @@ from rq import Queue
 from rq.job import Job
 
 
-
 app = Flask(__name__)
 
 def get_locale():
@@ -43,10 +42,8 @@ def get_locale():
 # Initialize Babel with locale_selector
 babel = Babel(app, locale_selector=get_locale)
 
-# Load config from environment
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-if not app.config['SECRET_KEY']:    
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+# Load config from environment – SECRET_KEY now has a safe fallback
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///business.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -55,34 +52,28 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_recycle': int(os.environ.get('DB_POOL_RECYCLE', 3600)),
 }
 
-# Security
+
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=int(os.environ.get('REMEMBER_DAYS', 30)))
 app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SESSION_COOKIE_SECURE', 'True').lower() == 'true'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-
 # Mail settings
 app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
 app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@example.com')
-
-# Cache (Redis)
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'enockdeghost@gmail.com')
 app.config['CACHE_TYPE'] = 'SimpleCache'
 app.config['CACHE_REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 app.config['CACHE_DEFAULT_TIMEOUT'] = 300
-
-# Babel i18n
 app.config['BABEL_DEFAULT_LOCALE'] = 'en'
 app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
 
-# Logging
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Extensions
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'auth.login'
@@ -91,13 +82,10 @@ csrf = CSRFProtect(app)
 mail = Mail(app)
 cache = Cache(app)
 
-# Redis queue for background tasks (optional)
 redis_conn = Redis.from_url(app.config['CACHE_REDIS_URL'])
 task_queue = Queue('business-tasks', connection=redis_conn)
 
-# ------------------------------
-# Permission definitions
-# ------------------------------
+
 ALL_PERMISSIONS = [
     ('access_dashboard', 'Access Dashboard'),
     ('view_sales', 'View Sales'),
@@ -118,9 +106,8 @@ ALL_PERMISSIONS = [
     ('manage_users', 'Manage Users'),
 ]
 
-# ------------------------------
-# Mixins
-# ------------------------------
+
+
 class AnonymousUser(AnonymousUserMixin):
     """Anonymous user with default permissions."""
     def has_permission(self, perm):
@@ -178,9 +165,7 @@ class AuditMixin:
     def updated_by(cls):
         return db.relationship('User', foreign_keys=[cls.updated_by_id])
 
-# ------------------------------
-# Models
-# ------------------------------
+
 class Branch(db.Model):
     __tablename__ = 'branches'
     id = db.Column(db.Integer, primary_key=True)
@@ -548,9 +533,8 @@ class ActivityLog(db.Model):
     details = db.Column(db.Text)
     user = db.relationship('User', foreign_keys=[user_id]) 
 
-# ------------------------------
-# Audit Logging
-# ------------------------------
+
+
 def json_serial(obj):
     if isinstance(obj, (datetime, date)):
         return obj.isoformat()
@@ -644,9 +628,7 @@ for model in audit_models:
     event.listen(model, 'after_update', lambda m, c, t: log_audit(m, c, t, 'UPDATE'))
     event.listen(model, 'after_delete', lambda m, c, t: log_audit(m, c, t, 'DELETE'))
 
-# ------------------------------
-# Authentication & Authorization Helpers
-# ------------------------------
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query_active().filter_by(id=int(user_id)).first()
@@ -686,9 +668,8 @@ def branch_filter(query, model):
         return query.filter(model.branch_id == current_user.branch_id)
     return query.filter(False)
 
-# ------------------------------
-# Forms
-# ------------------------------
+
+
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -794,14 +775,7 @@ admin.add_view(AdminModelView(Return, db.session))
 admin.add_view(AdminModelView(PaySlip, db.session))
 admin.add_view(AdminModelView(Budget, db.session))
 
-# ------------------------------
-# Blueprints and Routes
-# ------------------------------
-from flask import Blueprint
 
-# ----------------------------------------------------------------------
-# Auth Blueprint
-# ----------------------------------------------------------------------
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
