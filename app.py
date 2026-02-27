@@ -39,10 +39,8 @@ def get_locale():
         return current_user.locale
     return request.accept_languages.best_match(['en', 'es', 'fr']) or 'en'
 
-# Initialize Babel with locale_selector
 babel = Babel(app, locale_selector=get_locale)
 
-# Load config from environment – SECRET_KEY now has a safe fallback
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///business.db')
