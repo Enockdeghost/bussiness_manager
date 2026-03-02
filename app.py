@@ -12,6 +12,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_wtf import FlaskForm, CSRFProtect
+from sqlalchemy.exc import IntegrityError
 from wtforms import StringField, PasswordField, FloatField, IntegerField, DateField, SelectField, TextAreaField, BooleanField, SelectMultipleField
 from wtforms.validators import DataRequired, Email, Length, ValidationError, NumberRange, Optional
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -1308,12 +1309,21 @@ def new_product():
         db.session.add(product)
         db.session.commit()
         flash(_('Product added successfully.'), 'success')
+        try:
+            db.session.commit()
+            flash(_('Product added successfully.'), 'success')
+            return redirect(url_for('inventory.product_list'))
+        except IntegrityError as e:
+            db.session.rollback()
+            if 'UNIQUE constraint failed: products.sku' in str(e):
+                flash('A product with this SKU already exists. Please choose a different SKU.', 'danger')
+            else:
+                flash('An error occurred while adding the product.', 'danger')
         return redirect(url_for('inventory.product_list'))
     return render_template('inventory/product_form.html', form=form)
 
-# ----------------------------------------------------------------------
 # Expenses Blueprint
-# ----------------------------------------------------------------------
+
 expense_bp = Blueprint('expenses', __name__)
 
 @expense_bp.route('/')
