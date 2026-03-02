@@ -816,6 +816,12 @@ def reset_token(token):
 # ----------------------------------------------------------------------
 # Dashboard Blueprint
 # ----------------------------------------------------------------------
+@app.route('/')
+def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.index'))
+    return redirect(url_for('auth.login'))
+
 dashboard_bp = Blueprint('dashboard', __name__)
 
 def dashboard_cache_key():
