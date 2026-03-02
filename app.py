@@ -821,7 +821,7 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.index'))
     return redirect(url_for('auth.login'))
-
+    
 dashboard_bp = Blueprint('dashboard', __name__)
 
 def dashboard_cache_key():
@@ -849,7 +849,7 @@ def index():
         total = sales_query.filter(func.date(Sale.created_at) == day).with_entities(func.sum(Sale.total_amount)).scalar() or 0
         daily_sales.append({'date': day, 'total': total})
 
-    payment_methods = db.session.query(
+    payment_methods_data = db.session.query(
         Sale.payment_method,
         func.count(Sale.id).label('count'),
         func.sum(Sale.total_amount).label('total')
@@ -857,6 +857,8 @@ def index():
         Sale.branch_id == (current_user.branch_id if not current_user.is_admin else Sale.branch_id),
         func.date(Sale.created_at) >= (date.today() - timedelta(days=30))
     ).group_by(Sale.payment_method).all()
+
+    payment_methods = [{'payment_method': pm[0], 'count': pm[1], 'total': pm[2]} for pm in payment_methods_data]
 
     context = {
         'sales_today': sales_today,
